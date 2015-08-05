@@ -1,0 +1,6 @@
+defaultTasks 'build'
+
+allprojects {
+    version = pluginVersion
+    group = "${organisation}.${rootProject.name}"
+}

@@ -1,0 +1,75 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '0.9.0'
+}
+
+sourceCompatibility = 1.6
+
+def resourceLocation = new File(project.buildDir, 'generated-resources');
+jar {
+    doFirst {
+        File pluginProperties = new File(resourceLocation, "META-INF/gradle-plugins/${organisation}.${pluginName}.properties")
+        pluginProperties.parentFile.mkdirs()
+        pluginProperties.delete()
+        pluginProperties << "implementation-class=$implementationClass"
+    }
+    from resourceLocation
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allSource
+}
+
+publishing {
+    publications {
+        plugin(MavenPublication) {
+            from components.java
+            artifactId pluginName
+            artifact sourceJar {
+                classifier "sources"
+            }
+        }
+    }
+}
+
+publishToMavenLocal.doFirst {
+    assert project.version.endsWith("-SNAPSHOT")
+}
+
+publishPlugins.doFirst {
+    assert !project.version.endsWith("-SNAPSHOT")
+}
+
+pluginBundle {
+    website = 'https://github.com/LittleMikeDev/gradle-publishing-smorgasbord-plugin'
+    vcsUrl = 'https://github.com/LittleMikeDev/gradle-publishing-smorgasbord-plugin.git'
+    description = 'Plugin for simplified publishing'
+    tags = ['simple', 'basic', 'publishing', 'maven', 'plugin', 'portal', 'bintray']
+
+    plugins {
+        plugin {
+            id = "${organisation}.${pluginName}"
+            displayName = 'Publishing smorgasbord plugin (WIP)'
+        }
+    }
+}
+
+/**
+ * Hack to allow plugin publish key to be specified as an environment variable in Travis-CI
+ * Taken from: https://discuss.gradle.org/t/add-apikey-and-apisecret-to-pluginbundle-extension-for-plugin-publish-plugin/8636/4
+ * This can be removed when https://issues.gradle.org/browse/GRADLE-3273 is resolved
+ */
+task setupPluginUpload << {
+    def key = System.getenv('gradlePublishKey')
+    def secret = System.getenv('gradlePublishSecret')
+
+    if( !key || !secret) {
+        throw new RuntimeException("gradlePublishKey and/or gradlePublishSecret are not defined environment variables")
+    }
+
+    System.properties.setProperty("gradle.publish.key", key)
+    System.properties.setProperty("gradle.publish.secret", secret)
+}
+tasks.publishPlugins.dependsOn tasks.setupPluginUpload
