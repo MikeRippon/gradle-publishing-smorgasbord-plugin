@@ -10,7 +10,6 @@ buildscript {
     configurations.classpath.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 
-apply plugin: 'groovy'
 apply plugin: "${organisation}.${pluginName}"
 
 basicPublishing {
