@@ -2,10 +2,20 @@ plugins {
     id 'groovy'
     id 'java-gradle-plugin'
     id 'maven-publish'
-    id 'com.gradle.plugin-publish' version '0.9.0'
+    id 'com.gradle.plugin-publish' version '0.9.1'
 }
 
+group = "${organisation}.${rootProject.name}"
+
 sourceCompatibility = 1.6
+
+repositories {
+    maven { url "https://plugins.gradle.org/m2/" }
+}
+
+dependencies {
+    compile "com.gradle.publish:plugin-publish-plugin:0.9.1"
+}
 
 def resourceLocation = new File(project.buildDir, 'generated-resources');
 jar {
