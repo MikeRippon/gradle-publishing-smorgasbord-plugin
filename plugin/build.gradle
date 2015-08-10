@@ -1,5 +1,5 @@
 plugins {
-    id "uk.co.littlemike.publishing-smorgasbord-plugin" version "0.2"
+    id "uk.co.littlemike.publishing-smorgasbord-plugin" version "0.3"
 }
 
 repositories {
