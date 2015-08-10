@@ -27,10 +27,6 @@ class SmorgasbordPlugin implements Plugin<Project> {
     }
 
     private void applyMavenPublishingConfig(Project project, BasicPublishingConfig config) {
-        project.publishToMavenLocal.doFirst {
-            assert project.version.endsWith("-SNAPSHOT") : "Can only publish snapshots to local maven repository"
-        }
-
         project.archivesBaseName = config.artifactId
 
         project.publishing {
