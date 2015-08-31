@@ -15,6 +15,7 @@ class SmorgasbordPlugin implements Plugin<Project> {
         project.afterEvaluate {
             config.validate()
             applyMavenPublishingConfig(project, config)
+            applyBintrayPublishingConfig(project, config)
             applyPluginPublishingConfig(project, config)
         }
     }
@@ -24,6 +25,7 @@ class SmorgasbordPlugin implements Plugin<Project> {
         project.apply(plugin: 'java-gradle-plugin')
         project.apply(plugin: 'maven-publish')
         project.apply(plugin: 'com.gradle.plugin-publish')
+        project.apply(plugin: 'com.jfrog.bintray')
     }
 
     private void applyMavenPublishingConfig(Project project, BasicPublishingConfig config) {
@@ -31,11 +33,27 @@ class SmorgasbordPlugin implements Plugin<Project> {
 
         project.publishing {
             publications {
-                plugin(MavenPublication) {
+                maven(MavenPublication) {
                     from project.components.java
                     groupId config.groupId
                     artifactId config.artifactId
                 }
+            }
+        }
+    }
+
+    private void applyBintrayPublishingConfig(Project project, BasicPublishingConfig config) {
+        project.bintrayUpload.doFirst {
+            assert !project.version.endsWith("-SNAPSHOT") : "Cannot publish snapshot versions to Bintray"
+        }
+
+        project.bintray {
+            user = user ?: System.getenv('BINTRAY_USER')
+            key = key ?: System.getenv('BINTRAY_KEY')
+            publications = ['maven']
+            pkg {
+                repo = repo ?: 'maven'
+                name = name ?: project.rootProject.name
             }
         }
     }
