@@ -1,5 +1,5 @@
 plugins {
-    id "uk.co.littlemike.publishing-smorgasbord-plugin" version "0.3"
+    id "uk.co.littlemike.publishing-smorgasbord-plugin" version "0.5"
 }
 
 repositories {
@@ -15,11 +15,4 @@ basicPublishing {
     organisation = project.organisation
     artifactId = project.pluginName
     pluginImplementationClass = project.implementationClass
-}
-
-pluginBundle {
-    website = 'https://github.com/LittleMikeDev/gradle-publishing-smorgasbord-plugin'
-    vcsUrl = 'https://github.com/LittleMikeDev/gradle-publishing-smorgasbord-plugin.git'
-    description = 'Plugin for simplified publishing of java/groovy projects'
-    tags = ['simple', 'basic', 'publishing', 'maven', 'plugin', 'portal', 'bintray', 'groovy', 'java']
 }

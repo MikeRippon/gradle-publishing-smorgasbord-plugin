@@ -10,8 +10,8 @@ class SmorgasbordPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         applyRequiredPlugins(project)
-        def config = project.extensions.create("basicPublishing", BasicPublishingConfig, project)
 
+        def config = project.extensions.create("basicPublishing", BasicPublishingConfig, project)
         project.afterEvaluate {
             config.validate()
             applyMavenPublishingConfig(project, config)
@@ -31,12 +31,27 @@ class SmorgasbordPlugin implements Plugin<Project> {
     private void applyMavenPublishingConfig(Project project, BasicPublishingConfig config) {
         project.archivesBaseName = config.artifactId
 
+        project.task('sourceJar', type: Jar) << {
+            from project.sourceSets.main.allSource
+        }
+
+        project.task('javadocJar', type: Jar) << {
+            from project.javadoc.destinationDir
+        }
+
         project.publishing {
             publications {
                 maven(MavenPublication) {
                     from project.components.java
                     groupId config.groupId
                     artifactId config.artifactId
+
+                    artifact project.sourceJar {
+                        classifier = 'sources'
+                    }
+                    artifact project.javadocJar {
+                        classifier = 'javadoc'
+                    }
                 }
             }
         }
