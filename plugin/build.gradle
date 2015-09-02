@@ -16,3 +16,10 @@ basicPublishing {
     artifactId = project.pluginName
     pluginImplementationClass = project.implementationClass
 }
+
+pluginBundle {
+    website = 'https://github.com/LittleMikeDev/gradle-publishing-smorgasbord-plugin'
+    vcsUrl = 'https://github.com/LittleMikeDev/gradle-publishing-smorgasbord-plugin.git'
+    description = 'Plugin for simplified publishing of java/groovy projects'
+    tags = ['simple', 'basic', 'publishing', 'maven', 'plugin', 'portal', 'bintray', 'groovy', 'java']
+}
