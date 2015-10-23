@@ -20,7 +20,7 @@ class SmorgasbordPlugin implements Plugin<Project> {
         }
     }
 
-    private void applyRequiredPlugins(Project project) {
+    private static void applyRequiredPlugins(Project project) {
         project.apply(plugin: 'groovy')
         project.apply(plugin: 'java-gradle-plugin')
         project.apply(plugin: 'maven-publish')
@@ -28,7 +28,7 @@ class SmorgasbordPlugin implements Plugin<Project> {
         project.apply(plugin: 'com.jfrog.bintray')
     }
 
-    private void applyMavenPublishingConfig(Project project, BasicPublishingConfig config) {
+    private static void applyMavenPublishingConfig(Project project, BasicPublishingConfig config) {
         project.archivesBaseName = config.artifactId
 
         project.task('sourceJar', type: Jar) << {
@@ -73,7 +73,7 @@ class SmorgasbordPlugin implements Plugin<Project> {
         }
     }
 
-    private void applyPluginPublishingConfig(Project project, BasicPublishingConfig config) {
+    private static void applyPluginPublishingConfig(Project project, BasicPublishingConfig config) {
         project.publishPlugins.doFirst {
             assert config.pluginImplementationClass : "Implementation class must be specified in order to publish plugin"
             assert !project.version.endsWith("-SNAPSHOT") : "Cannot publish snapshot versions of plugins"
@@ -86,7 +86,7 @@ class SmorgasbordPlugin implements Plugin<Project> {
         }
     }
 
-    private void registerPluginBundle(Project project, config) {
+    private static void registerPluginBundle(Project project, config) {
         project.pluginBundle {
             plugins {
                 plugin {
@@ -97,7 +97,7 @@ class SmorgasbordPlugin implements Plugin<Project> {
         }
     }
 
-    private void generatePropertiesFile(Project project, config) {
+    private static void generatePropertiesFile(Project project, config) {
         def resourceLocation = new File(project.buildDir, 'generated-resources');
         project.jar {
             doFirst {
@@ -115,17 +115,17 @@ class SmorgasbordPlugin implements Plugin<Project> {
      * Taken from: https://discuss.gradle.org/t/add-apikey-and-apisecret-to-pluginbundle-extension-for-plugin-publish-plugin/8636/4
      * This can be removed when https://issues.gradle.org/browse/GRADLE-3273 is resolved
      */
-    private void getPluginPublishPropertiesFromEnvironment(Project project) {
+    private static void getPluginPublishPropertiesFromEnvironment(Project project) {
         project.task('setupPluginUpload') << {
             def key = System.getenv('gradlePublishKey')
-            def secret = System.getenv('gradlePublishSecret')
-
-            if (!key || !secret) {
-                throw new RuntimeException("gradlePublishKey and/or gradlePublishSecret are not defined environment variables")
+            if (key) {
+                System.properties.setProperty("gradle.publish.key", key)
             }
 
-            System.properties.setProperty("gradle.publish.key", key)
-            System.properties.setProperty("gradle.publish.secret", secret)
+            def secret = System.getenv('gradlePublishSecret')
+            if (secret) {
+                System.properties.setProperty("gradle.publish.secret", secret)
+            }
         }
         project.tasks.publishPlugins.dependsOn project.tasks.setupPluginUpload
     }
