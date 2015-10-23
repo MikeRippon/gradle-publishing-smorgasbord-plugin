@@ -15,7 +15,7 @@ class SmorgasbordPlugin implements Plugin<Project> {
         project.afterEvaluate {
             config.validate()
             applyMavenPublishingConfig(project, config)
-            applyBintrayPublishingConfig(project, config)
+            applyBintrayPublishingConfig(project)
             applyPluginPublishingConfig(project, config)
         }
     }
@@ -55,11 +55,30 @@ class SmorgasbordPlugin implements Plugin<Project> {
                 }
             }
         }
+
+        def repositoryProperty = isSnapshot(project) ? "mavenSnapshotRepository" : "mavenReleaseRepository"
+        def repositoryUrl = config.getProperty(repositoryProperty)
+
+        if (repositoryUrl) {
+            project.publishing.repositories.maven {
+                url repositoryUrl
+                if (config.hasMavenRepositoryCredentials()) {
+                    credentials {
+                        username config.mavenRepositoryUsername
+                        password config.mavenRepositoryPassword
+                    }
+                }
+            }
+        }
+        project.publish.doFirst {
+            assert repositoryUrl : "Cannot publish to maven repository, " +
+                    "no $repositoryProperty defined in basicPublishing configuration block"
+        }
     }
 
-    private void applyBintrayPublishingConfig(Project project, BasicPublishingConfig config) {
+    private static void applyBintrayPublishingConfig(Project project) {
         project.bintrayUpload.doFirst {
-            assert !project.version.endsWith("-SNAPSHOT") : "Cannot publish snapshot versions to Bintray"
+            assert !isSnapshot(project) : "Cannot publish snapshot versions to Bintray"
         }
 
         project.bintray {
@@ -76,12 +95,12 @@ class SmorgasbordPlugin implements Plugin<Project> {
     private static void applyPluginPublishingConfig(Project project, BasicPublishingConfig config) {
         project.publishPlugins.doFirst {
             assert config.pluginImplementationClass : "Implementation class must be specified in order to publish plugin"
-            assert !project.version.endsWith("-SNAPSHOT") : "Cannot publish snapshot versions of plugins"
+            assert !isSnapshot(project): "Cannot publish snapshot versions of plugins"
         }
 
         if (config.pluginImplementationClass != null) {
             registerPluginBundle(project, config)
-            getPluginPublishPropertiesFromEnvironment(project)
+            applyPluginPortalCredentials(project, config)
             generatePropertiesFile(project, config)
         }
     }
@@ -97,7 +116,7 @@ class SmorgasbordPlugin implements Plugin<Project> {
         }
     }
 
-    private static void generatePropertiesFile(Project project, config) {
+    private static void generatePropertiesFile(Project project, BasicPublishingConfig config) {
         def resourceLocation = new File(project.buildDir, 'generated-resources');
         project.jar {
             doFirst {
@@ -115,18 +134,13 @@ class SmorgasbordPlugin implements Plugin<Project> {
      * Taken from: https://discuss.gradle.org/t/add-apikey-and-apisecret-to-pluginbundle-extension-for-plugin-publish-plugin/8636/4
      * This can be removed when https://issues.gradle.org/browse/GRADLE-3273 is resolved
      */
-    private static void getPluginPublishPropertiesFromEnvironment(Project project) {
-        project.task('setupPluginUpload') << {
-            def key = System.getenv('gradlePublishKey')
-            if (key) {
-                System.properties.setProperty("gradle.publish.key", key)
-            }
-
-            def secret = System.getenv('gradlePublishSecret')
-            if (secret) {
-                System.properties.setProperty("gradle.publish.secret", secret)
-            }
+    private static void applyPluginPortalCredentials(Project project, BasicPublishingConfig config) {
+        project.tasks.publishPlugins.doFirst {
+            config.applyPluginPortalCredentials()
         }
-        project.tasks.publishPlugins.dependsOn project.tasks.setupPluginUpload
+    }
+
+    private static boolean isSnapshot(Project project) {
+        project.version.endsWith("-SNAPSHOT")
     }
 }
