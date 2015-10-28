@@ -46,7 +46,7 @@ Use the standard gradle task `publishToMavenLocal`
 ```
 basicPublishing {
     organisation = 'org.foo'
-    implementationClass = 'org.foo.bar.Baz'
+    pluginImplementationClass = 'org.foo.bar.Baz'
 }
 ```
 - No need to create your plugin properties file, it will be generated and included in the plugin jar automatically

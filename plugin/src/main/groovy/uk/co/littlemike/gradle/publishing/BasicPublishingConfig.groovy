@@ -39,7 +39,7 @@ class BasicPublishingConfig {
     }
 
     public String getPluginId() {
-        "${organisation}.${artifactId}"
+        "${organisation}.${getArtifactId()}"
     }
 
     public applyPluginPortalCredentials() {
