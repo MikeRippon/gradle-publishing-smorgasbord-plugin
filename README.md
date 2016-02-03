@@ -5,7 +5,7 @@ A plugin that greatly simplifies publishing of Java/Groovy projects in return fo
 # Assumptions
 
 - You want to publish only a single artifact per-module
-- You are publishing plain old Java/Groovy or a Gradle plugin
+- You are publishing plain old Java,Groovy or a Gradle plugin
 - You are happy publishing using one of the few supported methods (feel free to add more!)
 
 # I want to publish a Java/Groovy library
@@ -27,11 +27,36 @@ You're done! Publish using one of the methods below
 
 The maven GroupID will default to `<organisation>.<root project name>`
 The artifact id will be `<project name>`
-So your final artifact will look something like `org.foo.bar-project:baz-module:1.0`
+So for single module projects your artifact will look something like: `org.foo.bar-project:bar-project:1.0`
+For multi-module projects you'll end up with something like:
+```
+org.foo.bar-project:baz-module:1.0
+org.foo.bar-project:quz-module:1.0
+```
 
 ## Publish to maven local
 
 Use the standard gradle task `publishToMavenLocal`
+
+## Publish to a remote maven repository
+
+Add the snapshot and release repository urls, and optionally the username and password if authentication is required.
+For example:
+
+```
+basicPublishing {
+    organisation = 'org.foo'
+    
+    mavenSnapshotRepository 'http://nexus.myorg.com/nexus/content/repositories/snapshots'
+    mavenReleaseRepository 'http://nexus.myorg.com/nexus/content/repositories/releases'
+    mavenRepositoryUsername 'deployment'
+    mavenRepositoryPassword 'deployment123'
+}
+```
+
+You can now call the `publish` task. This will deploy artifacts to either the snapshot or release repository depending
+on whether the version ends with "-SNAPSHOT"
+
 
 ## Publish to Bintray
 
@@ -49,6 +74,8 @@ basicPublishing {
     pluginImplementationClass = 'org.foo.bar.Baz'
 }
 ```
+- Adding the `pluginImplementationClass` will also cause the java-gradle-plugin and com.gradle.plugin-publish
+  plugins to be applied for you
 - No need to create your plugin properties file, it will be generated and included in the plugin jar automatically
 - Set your gradle credentials as environment variables `gradlePublishKey` and `gradlePublishSecret`
 - Publish using the usual task `publishPlugins`
