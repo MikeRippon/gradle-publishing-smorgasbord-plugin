@@ -1,5 +1,6 @@
 package uk.co.littlemike.gradle.publishing
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.MavenPublication
@@ -21,10 +22,8 @@ class SmorgasbordPlugin implements Plugin<Project> {
     }
 
     private static void applyRequiredPlugins(Project project) {
-        project.apply(plugin: 'groovy')
-        project.apply(plugin: 'java-gradle-plugin')
+        project.apply(plugin: 'java')
         project.apply(plugin: 'maven-publish')
-        project.apply(plugin: 'com.gradle.plugin-publish')
         project.apply(plugin: 'com.jfrog.bintray')
     }
 
@@ -93,15 +92,20 @@ class SmorgasbordPlugin implements Plugin<Project> {
     }
 
     private static void applyPluginPublishingConfig(Project project, BasicPublishingConfig config) {
-        project.publishPlugins.doFirst {
-            assert config.pluginImplementationClass : "Implementation class must be specified in order to publish plugin"
-            assert !isSnapshot(project): "Cannot publish snapshot versions of plugins"
-        }
-
-        if (config.pluginImplementationClass != null) {
+        if (config.pluginImplementationClass) {
+            project.apply(plugin: 'java-gradle-plugin')
+            project.apply(plugin: 'com.gradle.plugin-publish')
             registerPluginBundle(project, config)
             applyPluginPortalCredentials(project, config)
             generatePropertiesFile(project, config)
+            project.publishPlugins.doFirst {
+                assert !isSnapshot(project): "Cannot publish snapshot versions of plugins"
+            }
+        } else {
+            project.tasks.replace('publishPlugins')
+            project.publishPlugins.doFirst {
+                throw new InvalidUserDataException("Implementation class must be specified in order to publish plugin")
+            }
         }
     }
 
