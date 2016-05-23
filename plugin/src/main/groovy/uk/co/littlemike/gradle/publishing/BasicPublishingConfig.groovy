@@ -35,7 +35,7 @@ class BasicPublishingConfig {
     }
 
     public String getPluginDisplayName() {
-        pluginDisplayName ?: artifactId
+        pluginDisplayName ?: getArtifactId()
     }
 
     public String getPluginId() {
